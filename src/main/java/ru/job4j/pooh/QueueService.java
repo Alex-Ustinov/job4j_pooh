@@ -21,7 +21,7 @@ public class QueueService implements Service {
         return result;
     }
 
-    
+
     @Override
     public Resp process(Req req) {
         if ("GET".equals(req.getHttpRequestType())) {

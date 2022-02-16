@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class PoohServer {
-    private final HashMap modes = new HashMap<>();
+    private final HashMap<String, Service> modes = new HashMap<>();
 
     public void start() {
         modes.put("queue", new QueueService());
