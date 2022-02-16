@@ -8,9 +8,6 @@ public class TopicService implements Service {
 
     ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>> topic = new ConcurrentHashMap();
     public boolean putIfAbsent(Req req) {
-//        if (topic.putIfAbsent(req.getSourceName() )) {
-//
-//        }
         return false;
     }
 
