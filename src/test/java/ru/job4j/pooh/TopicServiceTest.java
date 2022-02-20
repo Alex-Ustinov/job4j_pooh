@@ -30,7 +30,7 @@ public class TopicServiceTest {
         Resp result2 = topicService.process(
                 new Req("GET", "topic", "weather", paramForSubscriber2)
         );
-//        assertThat(result1.text(), is("temperature=18"));
-//        assertThat(result2.text(), is(""));
+        /* assertThat(result1.text(), is("temperature=18"));
+        assertThat(result2.text(), is("")); */
     }
 }
