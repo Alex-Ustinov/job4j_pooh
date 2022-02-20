@@ -15,12 +15,13 @@ public class Req {
     }
 
     public static Req of(String content) {
-        String [] arrReqParam = content.split("");
+        String [] arrReqParam = content.split(" ");
         String method = arrReqParam[0];
         String [] poohParams = arrReqParam[1].split("/");
         String  poohMode = poohParams[0];
         String  sourceName = poohParams[1];
         String param = arrReqParam[arrReqParam.length - 1];
+
         return new Req(method, poohMode, sourceName, param);
     }
 
@@ -39,4 +40,5 @@ public class Req {
     public String getParam() {
         return param;
     }
+
 }
