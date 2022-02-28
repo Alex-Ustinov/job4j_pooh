@@ -3,41 +3,25 @@ package ru.job4j.pooh;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class TopicService implements Service {
 
     ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>> topic = new ConcurrentHashMap();
     public boolean putIfAbsent(Req req) {
-        AtomicReference<Boolean> result = new AtomicReference<>(false);
-        ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> sourceQueue = topic.computeIfPresent(req.getSourceName(),(key, val) -> {
-            ConcurrentLinkedQueue<String> user = val.computeIfPresent(req.getParam(), (keyUser, userQueue) -> {
-                userQueue.add(req.getParam());
-                return userQueue;
-            });
-            if (user == null) {
-                ConcurrentLinkedQueue<String> paramsQueue = new ConcurrentLinkedQueue<>();
-                paramsQueue.add(req.getParam());
-                val.put(req.getParam(), paramsQueue);
+        Boolean result = false;
+        ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> existMap = topic.get(req.getSourceName());
+        if (existMap != null) {
+            ConcurrentLinkedQueue existQueue = existMap.get(req.getParam());
+            if (existQueue != null) {
+                existQueue.add(req.getParam());
+                result = true;
             }
-            result.set(true);
-            return val;
-        });
-        return result.get();
+        }
+        return result;
     }
 
     public ConcurrentLinkedQueue<String> get(Req req) {
-        AtomicReference<ConcurrentLinkedQueue<String>> result = new AtomicReference<>(new ConcurrentLinkedQueue<>());
-        ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> data = topic.computeIfPresent(req.getSourceName(),(key, val) -> {
-            ConcurrentLinkedQueue<String> source = val.getOrDefault(req.getParam(), null);
-            if (source != null) {
-                for (String sou : source) {
-                    result.get().add(sou);
-                }
-            }
-            return val;
-        });
-
+        ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> data = topic.get(req.getSourceName());
         if (data == null) {
             ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> sources = new ConcurrentHashMap<>();
             ConcurrentLinkedQueue concurrentLinkedQueue = new ConcurrentLinkedQueue<String>();
@@ -45,8 +29,17 @@ public class TopicService implements Service {
             sources.put(req.getParam(), concurrentLinkedQueue);
             topic.putIfAbsent(req.getSourceName(), sources);
             return concurrentLinkedQueue;
+        } else {
+            ConcurrentLinkedQueue<String> queue = data.get(req.getParam());
+            if (queue == null) {
+                ConcurrentLinkedQueue<String> paramsQueue = new ConcurrentLinkedQueue<>();
+                data.putIfAbsent(req.getParam(), paramsQueue);
+                return paramsQueue;
+            } else {
+                data.remove(queue);
+                return queue;
+            }
         }
-        return result.get();
     }
 
     @Override

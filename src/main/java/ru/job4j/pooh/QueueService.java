@@ -2,36 +2,31 @@ package ru.job4j.pooh;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class QueueService implements Service {
     ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
 
     public void putIfAbsent(Req req) {
-        ConcurrentLinkedQueue<String> data = queue.computeIfPresent(req.getSourceName(), (key, val) -> {
-            val.add(req.getParam());
-                    return val;
-        });
+        ConcurrentLinkedQueue<String> data = queue.get(req.getSourceName());
         if (data == null) {
             ConcurrentLinkedQueue<String> result = new ConcurrentLinkedQueue<>();
             result.add(req.getParam());
-            queue.putIfAbsent(req.getSourceName(), result);
+            queue.put(req.getSourceName(), result);
+        } else {
+            data.add(req.getParam());
         }
     };
 
     public ConcurrentLinkedQueue<String> get(Req req) {
-        AtomicReference<ConcurrentLinkedQueue<String>> result = null;
-        result.set(queue.computeIfPresent(req.getSourceName(), (key, val) -> {
-            result.set(val);
-            return val;
-        }));
+        ConcurrentLinkedQueue<String> result = queue.get(req.getSourceName());
         if (result == null) {
             ConcurrentLinkedQueue concurrentLinkedQueue = new ConcurrentLinkedQueue<String>();
             concurrentLinkedQueue.add(req.getParam());
-            result.set(concurrentLinkedQueue);
-            queue.putIfAbsent(req.getSourceName(), concurrentLinkedQueue);
+            queue.put(req.getSourceName(), concurrentLinkedQueue);
+            return concurrentLinkedQueue;
+        } else {
+            return result;
         }
-        return result.get();
     }
 
 
