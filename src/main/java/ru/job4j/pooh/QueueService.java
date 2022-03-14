@@ -6,42 +6,35 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class QueueService implements Service {
     ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
 
-    public void putIfAbsent(Req req) {
-        ConcurrentLinkedQueue<String> data = queue.get(req.getSourceName());
-        if (data == null) {
-            ConcurrentLinkedQueue<String> result = new ConcurrentLinkedQueue<>();
-            result.add(req.getParam());
-            queue.put(req.getSourceName(), result);
-        } else {
-            data.add(req.getParam());
-        }
+    public Resp putIfAbsent(Req req) {
+        queue.putIfAbsent(req.getSourceName(), new ConcurrentLinkedQueue<String>());
+        queue.get(req.getSourceName()).add(req.getParam());
+        return new Resp(req.getParam(), 200);
     };
 
-    public ConcurrentLinkedQueue<String> get(Req req) {
+    public String get(Req req) {
         ConcurrentLinkedQueue<String> result = queue.get(req.getSourceName());
-        if (result == null) {
-            ConcurrentLinkedQueue concurrentLinkedQueue = new ConcurrentLinkedQueue<String>();
-            concurrentLinkedQueue.add(req.getParam());
-            queue.put(req.getSourceName(), concurrentLinkedQueue);
-            return concurrentLinkedQueue;
-        } else {
-            return result;
+        if (result != null) {
+            return queue.get(req.getSourceName()).poll();
         }
+        return null;
+    }
+
+    public Resp prepareGetResponse(Req req) {
+        String result = get(req);
+        Number code = result != null ? 200 : 204;
+        String text = result != null ? result : "";
+        return new Resp(text, code);
     }
 
 
     @Override
     public Resp process(Req req) {
-        if ("GET".equals(req.getHttpRequestType())) {
-            ConcurrentLinkedQueue<String> data = get(req);
-            if (data != null) {
-                return new Resp(data.poll(), "200");
-            } else {
-                return new Resp(data.poll(), "204");
-            }
-        } else {
-            putIfAbsent(req);
-            return new Resp(req.getParam(), "200");
-        }
+        String typeHttp = req.getHttpRequestType();
+        return switch (typeHttp) {
+            case "GET" -> prepareGetResponse(req);
+            case "POST" -> putIfAbsent(req);
+            default -> new Resp("", 501);
+        };
     }
 }
