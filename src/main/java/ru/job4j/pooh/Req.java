@@ -15,13 +15,20 @@ public class Req {
     }
 
     public static Req of(String content) {
+        content = content.replaceAll("\n", " ").trim();
         String [] arrReqParam = content.split(" ");
         String method = arrReqParam[0];
         String [] poohParams = arrReqParam[1].split("/");
-        String  poohMode = poohParams[0];
-        String  sourceName = poohParams[1];
-        String param = arrReqParam[arrReqParam.length - 1];
-
+        String  poohMode = poohParams[1];
+        String  sourceName = poohParams[2];
+        String param = "";
+        if ("POST".equals(method)) {
+            param = arrReqParam[arrReqParam.length - 1];
+        } else {
+            if ("topic".equals(poohMode)) {
+                param = poohParams[poohParams.length - 1];
+            }
+        }
         return new Req(method, poohMode, sourceName, param);
     }
 

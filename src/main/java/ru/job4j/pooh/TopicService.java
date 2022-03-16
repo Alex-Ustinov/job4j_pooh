@@ -21,7 +21,7 @@ public class TopicService implements Service {
     public String get(Req req) {
         ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> data = topic.putIfAbsent(req.getSourceName(), new ConcurrentHashMap<>());
         if (data == null) {
-            ConcurrentLinkedQueue concurrentLinkedQueue = new ConcurrentLinkedQueue<String>();
+            ConcurrentLinkedQueue<String> concurrentLinkedQueue = new ConcurrentLinkedQueue<>();
             ConcurrentHashMap queue = topic.get(req.getSourceName());
             queue.put(req.getParam(), concurrentLinkedQueue);
             return null;
